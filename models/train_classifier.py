@@ -117,7 +117,7 @@ def save_model(model, model_filepath):
         model_filepath - String with the filepath in which the model will be saved
     """
     with open(model_filepath, 'wb') as f:
-    pickle.dump(model, f)
+        pickle.dump(model, f)
 
 
 def main():
