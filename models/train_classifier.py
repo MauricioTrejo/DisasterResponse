@@ -34,12 +34,12 @@ def load_data(database_filepath):
         Y - Dataframe with the labels
     """
     
-    engine = create_engine('sqlite:///' + database_filename + '.db')
+    engine = create_engine('sqlite:///' + database_filepath)
     df = pd.read_sql_table('messages', engine)
     X = df['message']
     Y = df.drop(labels = ['id', 'original', 'genre', 'message'], axis = 1)
     
-    return X, Y
+    return X, Y, Y.columns
 
 
 def tokenize(text):
@@ -103,7 +103,7 @@ def evaluate_model(model, X_test, y_test, category_names):
     y_pred = model.predict(X_test)
     y_pred = pd.DataFrame(y_pred, columns = y_test.columns)
     
-    for i in range(y_dev.shape[1]):
+    for i in range(y_test.shape[1]):
         print('Classification report for label: ' + category_names[i])
         print(classification_report(y_test.iloc[:,i], y_pred.iloc[:,i], labels = [0, 1]))
     
