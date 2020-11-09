@@ -1,16 +1,88 @@
 import sys
+import pandas as pd
+from sqlalchemy import create_engine
+
+import re
+import nltk
+from nltk.corpus import stopwords
+from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.tokenize import word_tokenize
+
+nltk.download(['punkt', 'stopwords', 'wordnet'])
+
+from sklearn.multioutput import MultiOutputClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+
+from sklearn.model_selection import train_test_split, GridSearchCV
 
 
 def load_data(database_filepath):
-    pass
+    """
+    This function loads data from an sql database and transform it into a pandas dataframe
+    
+    Input:
+        database_filepath - String with the name of the database
+        
+    Output:
+        X - DataFrame with the messages to be classified
+        Y - Dataframe with the labels
+    """
+    
+    engine = create_engine('sqlite:///' + database_filename + '.db')
+    df = pd.read_sql_table('messages', engine)
+    X = df['message']
+    Y = df.drop(labels = ['id', 'original', 'genre', 'message'], axis = 1)
+    
+    return X, Y
 
 
 def tokenize(text):
-    pass
+    """
+    Function that tokenize and lemmatize the given text
+    
+    Input:
+        String with the text to be transformed
+    
+    Output:
+        String with the lemmas of the string given as input
+    """
+    
+    # Loading the stop words and Lemmatizer
+    stop_words = stopwords.words("english")
+    lemmatizer = WordNetLemmatizer()
+    
+    # Transform to lowercase and remove punctuation
+    text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
+    
+    # Tokenize the resulting text
+    tokens = word_tokenize(text)
+    
+    # lemmatize and remove stop words
+    tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words]
+    
+    return tokens
 
 
 def build_model():
-    pass
+    """
+    This functions makes the model to classify messages, it has a countvectorizer, a tfidftransformer
+    for the data processing step and a random forest for the model step
+    
+    Output:
+        Pipeline with the steps of the pipeline
+    """
+    
+    pipeline = Pipeline(steps = [
+        ('text_pipeline', Pipeline([
+            ('vect', CountVectorizer(tokenizer=tokenize)),
+            ('tfidf', TfidfTransformer())
+        ])),
+        ('model', MultiOutputClassifier(RandomForestClassifier(random_state = 17)))
+    ])
+    
+    return pipeline
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
