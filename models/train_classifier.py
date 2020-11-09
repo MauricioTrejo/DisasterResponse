@@ -15,7 +15,11 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
+from sklearn.metrics import classification_report
+
 from sklearn.model_selection import train_test_split, GridSearchCV
+
+import pickle
 
 
 def load_data(database_filepath):
@@ -85,12 +89,35 @@ def build_model():
     return pipeline
 
 
-def evaluate_model(model, X_test, Y_test, category_names):
-    pass
-
+def evaluate_model(model, X_test, y_test, category_names):
+    """
+    This functions prints the classification report for each category name
+    
+    Input:
+        model - The model to be tested
+        X_test - Dataframe with the input variables to be predicted and tested for model performance
+        Y_test - Dataframe containing the true values of the classification
+        category_names - Array with the name of each category
+    """
+    
+    y_pred = model.predict(X_test)
+    y_pred = pd.DataFrame(y_pred, columns = y_test.columns)
+    
+    for i in range(y_dev.shape[1]):
+        print('Classification report for label: ' + category_names[i])
+        print(classification_report(y_test.iloc[:,i], y_pred.iloc[:,i], labels = [0, 1]))
+    
 
 def save_model(model, model_filepath):
-    pass
+    """
+    This function saves the model as a pickle file
+    
+    Input:
+        model - The model to save
+        model_filepath - String with the filepath in which the model will be saved
+    """
+    with open(model_filepath, 'wb') as f:
+    pickle.dump(model, f)
 
 
 def main():
