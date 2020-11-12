@@ -47,11 +47,18 @@ def clean_data(df):
         categories[column] = categories[column].apply(lambda x: x[-1])
         categories[column] = categories[column].astype(float)
     
+    # Removing rows of data that are in other language or incomplete
+    indices = []
+    for i in range(categories.shape[0]):
+        if max(categories.loc[i,:]) > 1 or min(categories.loc[i,:]) < 0:
+            indices.append(i)
+    
     # Drop the original categories column from df and adding the new columns
     df = df.drop('categories', axis = 1)
     df = pd.concat([df, categories], axis = 1, sort = False)
     
-    # Drop duplicates
+    # Drop duplicates and rows with incomplete data
+    df = df.drop(axis = 0, index = indices)
     df = df.drop_duplicates()
     
     return df
