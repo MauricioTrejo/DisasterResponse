@@ -16,17 +16,27 @@ The libraries used in this project are:
 jplotly 4.8.2, pandas 1.0.1, nltk 3.4.5, flask 1.1.1, sklearn 0.22.1, sqlachemy 1.3.13
 
 ### Instructions:
-1. Run the following commands in the project's root directory to set up your database and model.
+1. Run the following commands in the project's root directory to set up the database and model.
 
     - To run ETL pipeline that cleans data and stores in database
         `python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db`
     - To run ML pipeline that trains classifier and saves
         `python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl`
 
-2. Run the following command in the app's directory to run your web app.
+2. Run the following command in the app's directory to run the web app.
     `python run.py`
 
 3. Go to http://0.0.0.0:3001/
+
+Note: To select the best model, we used a first search with RandomizedSearchCV on the next parameters (with search space in parenthesis): 
+- use_idf (True, False)
+- n_estimators (100, 200, 300, 400, 500)
+- max_features (max, sqrt)
+- min_samples_split (2, 3, 4, 5)
+- bootstrap (True, False)
+
+The best model according to that search is use_idf = False, n_estimators = 400, min_samples_split = 3, max_features = 'sqrt' and bootstrap = False. However, the performance between that and the default model is statistically the same. Besides, the default model takes 6 minutes to train while the best model takes 44 minutes to train.
+
 
 <a name="projects"></a>
 ### Project
