@@ -2,12 +2,21 @@ import json
 import plotly
 import pandas as pd
 
+import re
+import nltk
+from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+from sklearn.feature_extraction.text import CountVectorizer
+
 from flask import Flask
 from flask import render_template, request, jsonify
-from plotly.graph_objs import Bar
+from plotly.graph_objs import Bar, Pie
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
@@ -15,22 +24,24 @@ from sqlalchemy import create_engine
 app = Flask(__name__)
 
 def tokenize(text):
+    
+    stop_words = stopwords.words("english")
+    
+    text = re.sub(r"[^a-zA-Z0-9]", " ", text.lower())
+    
     tokens = word_tokenize(text)
     lemmatizer = WordNetLemmatizer()
 
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
+    tokens = [lemmatizer.lemmatize(word) for word in tokens if word not in stop_words]
 
-    return clean_tokens
+    return tokens
 
 # load data
 engine = create_engine('sqlite:///data/DisasterResponse.db')
 df = pd.read_sql_table('messages', engine)
 
 # load model
-model = joblib.load("models/your_model_name.pkl")
+model = joblib.load("models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -39,6 +50,19 @@ model = joblib.load("models/your_model_name.pkl")
 def index():
     
     # extract data needed for visuals
+    vec = CountVectorizer(tokenizer=tokenize, ngram_range=(1, 1))
+    bag_of_words = vec.fit_transform(df['message'])
+    sum_words = bag_of_words.sum(axis=0) 
+    
+    words_freq = [(word, sum_words[0, idx]) for word, idx in vec.vocabulary_.items()]
+    words_freq = sorted(words_freq, key = lambda x: x[1], reverse=True)
+    words_freq_df = pd.DataFrame(words_freq, columns = ['Word', 'Count'])
+    
+    # 20 most popular words
+    words_freq = words_freq_df.head(20)['Count']
+    words_names = words_freq_df.head(20)['Word']
+    
+    # Number of words per genre
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     
@@ -46,9 +70,9 @@ def index():
     graphs = [
         {
             'data': [
-                Bar(
-                    x=genre_names,
-                    y=genre_counts
+                Pie(
+                    labels = genre_names,
+                    values = genre_counts
                 )
             ],
 
@@ -59,6 +83,24 @@ def index():
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        },
+        {
+            'data': [
+                Bar(
+                    x = words_names,
+                    y = words_freq
+                )
+            ],
+
+            'layout': {
+                'title': '20 Most Popular Words',
+                'yaxis': {
+                    'title': "Frequency"
+                },
+                'xaxis': {
+                    'title': "Word"
                 }
             }
         }
