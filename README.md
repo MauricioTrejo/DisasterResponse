@@ -62,4 +62,4 @@ This repository contains the following folders and files:
 <a name="acknowledgements"></a>
 ### Acknowledgements
 
-We want to thank [Figure Eight](https://appen.com/?ref=Welcome.AI) for the data used in this project.
+We want to thank [Figure Eight](https://appen.com/?ref=Welcome.AI) for the data used in this project and [Udacity](https://www.udacity.com/) for app's structure and tokenizer's code.
