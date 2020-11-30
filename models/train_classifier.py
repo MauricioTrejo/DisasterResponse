@@ -75,7 +75,7 @@ def build_model():
     for the data processing step and a random forest for the model step
     
     Output:
-        Pipeline with the steps of the pipeline 
+        Pipeline with the steps of the pipeline
     """
     
     pipeline = Pipeline(steps = [
